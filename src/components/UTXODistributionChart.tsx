@@ -2,45 +2,25 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const UTXODistributionChart = () => {
-  const [utxoData, setUtxoData] = useState<any[]>([]);
+  const [changesData, setChangesData] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load and process data
+  // Load pre-calculated distribution changes
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Fetch data from public folder
-        const response = await fetch('/utxo_data_lastweek.json');
+        // Fetch pre-calculated changes data
+        const response = await fetch('/distribution_changes.json');
         const data = await response.json();
         
-        // Use first day as baseline
-        const baselinePartitions = data[0].partitions;
+        setChangesData(data);
         
-        // Process data
-        const processed = data.map((day: any) => {
-          const date = new Date(day.t * 1000);
-          const distributionChanges = day.partitions.map((value: number, i: number) => 
-            value - baselinePartitions[i]
-          );
-          
-          return {
-            date: date.toISOString().split('T')[0],
-            displayDate: date.toLocaleDateString('en-US'),
-            timestamp: day.t,
-            distributionChanges: distributionChanges,
-            currentPrice: day.current_price,
-            totalSupply: day.total_supply,
-            prices: day.prices
-          };
-        });
-        
-        setUtxoData(processed);
-        
-        // Set first date as default (or second date to show actual changes)
-        const defaultDate = processed.length > 1 ? processed[1].date : processed[0].date;
-        setSelectedDate(defaultDate);
+        // Set first date as default
+        if (data.length > 0) {
+          setSelectedDate(data[0].date);
+        }
         setLoading(false);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -53,37 +33,48 @@ const UTXODistributionChart = () => {
 
   // Update chart data when date changes
   useEffect(() => {
-    if (selectedDate && utxoData.length > 0) {
-      const selectedDay = utxoData.find(d => d.date === selectedDate);
+    if (selectedDate && changesData.length > 0) {
+      const selectedDay = changesData.find(d => d.date === selectedDate);
       if (selectedDay) {
         // Create chart data with price ranges and distribution changes
-        const chartData = selectedDay.distributionChanges.map((change: number, index: number) => {
-          const priceRange = index < selectedDay.prices.length - 1 
-            ? `${(selectedDay.prices[index]/1000).toFixed(0)}k-${(selectedDay.prices[index + 1]/1000).toFixed(0)}k`
-            : `${(selectedDay.prices[index]/1000).toFixed(0)}k+`;
+        const chartData = selectedDay.changes.map((change: number, index: number) => {
+          const price = selectedDay.prices[index];
+          const nextPrice = index < selectedDay.prices.length - 1 
+            ? selectedDay.prices[index + 1] 
+            : price * 1.5; // Approximate next price for last bucket
+          
+          const priceRange = price < 1000 
+            ? `$${price.toFixed(0)}-${nextPrice.toFixed(0)}`
+            : `${(price/1000).toFixed(0)}k-${(nextPrice/1000).toFixed(0)}k`;
             
           return {
             priceRange,
             distributionChange: change,
-            index: index
+            index: index,
+            price: price
           };
         });
         setChartData(chartData);
       }
     }
-  }, [selectedDate, utxoData]);
+  }, [selectedDate, changesData]);
 
   // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const value = payload[0].value;
+      
       return (
         <div className="bg-white p-3 border border-gray-300 rounded shadow-lg">
-          <p className="font-semibold">{`Price Range: $${label}`}</p>
-          <p className="text-blue-600">
-            {`Distribution Change: ${payload[0].value > 0 ? '+' : ''}${payload[0].value.toLocaleString()} BTC`}
+          <p className="font-semibold">{`Price Range: ${label}`}</p>
+          <p className={value >= 0 ? "text-green-600" : "text-red-600"}>
+            {`Change: ${value >= 0 ? '+' : ''}${value.toLocaleString(undefined, { 
+              minimumFractionDigits: 2, 
+              maximumFractionDigits: 2 
+            })} BTC`}
           </p>
-          <p className="text-gray-600 text-sm">{`Range Index: ${data.index + 1}/100`}</p>
+          <p className="text-gray-600 text-sm">{`Bucket: ${data.index + 1}/100`}</p>
         </div>
       );
     }
@@ -98,13 +89,13 @@ const UTXODistributionChart = () => {
     );
   }
 
-  const selectedDayInfo = utxoData.find(d => d.date === selectedDate);
+  const selectedDayInfo = changesData.find(d => d.date === selectedDate);
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          UTXO Distribution Change Analysis
+          Daily UTXO Distribution Changes
         </h2>
         
         {/* Date Filter */}
@@ -118,9 +109,9 @@ const UTXODistributionChart = () => {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            {utxoData.map((day) => (
+            {changesData.map((day) => (
               <option key={day.date} value={day.date}>
-                {day.displayDate} (${day.currentPrice.toLocaleString()})
+                {day.date} (Total: {day.total >= 0 ? '+' : ''}{day.total.toFixed(2)} BTC)
               </option>
             ))}
           </select>
@@ -132,15 +123,17 @@ const UTXODistributionChart = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div>
                 <span className="font-semibold text-gray-700">Date: </span>
-                <span className="text-gray-900">{selectedDayInfo.displayDate}</span>
+                <span className="text-gray-900">{selectedDayInfo.date}</span>
               </div>
               <div>
-                <span className="font-semibold text-gray-700">BTC Price: </span>
-                <span className="text-green-600">${selectedDayInfo.currentPrice.toLocaleString()}</span>
+                <span className="font-semibold text-gray-700">Total Daily Change: </span>
+                <span className={selectedDayInfo.total >= 0 ? "text-green-600" : "text-red-600"}>
+                  {selectedDayInfo.total >= 0 ? '+' : ''}{selectedDayInfo.total.toFixed(2)} BTC
+                </span>
               </div>
               <div>
-                <span className="font-semibold text-gray-700">Total Supply: </span>
-                <span className="text-blue-600">{selectedDayInfo.totalSupply.toLocaleString()} BTC</span>
+                <span className="font-semibold text-gray-700">Price Buckets: </span>
+                <span className="text-blue-600">{selectedDayInfo.prices.length}</span>
               </div>
             </div>
           </div>
@@ -150,25 +143,31 @@ const UTXODistributionChart = () => {
       {/* Chart */}
       <div className="bg-gray-50 p-4 rounded-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Distribution Change by Price Range (vs Baseline: {utxoData[0]?.displayDate})
+          Distribution Changes by Price Range (Day-over-Day)
         </h3>
         <ResponsiveContainer width="100%" height={500}>
           <BarChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
+            margin={{ top: 20, right: 30, left: 80, bottom: 100 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
             <XAxis 
               dataKey="priceRange"
               angle={-45}
               textAnchor="end"
-              height={80}
-              fontSize={10}
+              height={100}
+              fontSize={9}
               interval={4} // Show every 5th label to avoid crowding
             />
             <YAxis 
-              tickFormatter={(value) => `${value > 0 ? '+' : ''}${(value/1000).toFixed(0)}k`}
-              fontSize={12}
+              tickFormatter={(value) => {
+                if (Math.abs(value) < 1000) {
+                  return value.toFixed(0);
+                }
+                return `${(value/1000).toFixed(0)}k`;
+              }}
+              fontSize={11}
+              width={70}
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar 
@@ -183,9 +182,9 @@ const UTXODistributionChart = () => {
         </ResponsiveContainer>
         
         <div className="mt-4 text-sm text-gray-600">
-          <p><span className="font-semibold">Note:</span> Distribution changes show the difference from the baseline date ({utxoData[0]?.displayDate})</p>
-          <p><span className="text-green-600 font-semibold">Green bars:</span> Increased UTXO amounts | <span className="text-red-600 font-semibold">Red bars:</span> Decreased UTXO amounts</p>
-          <p>X-axis shows 100 price ranges from $0 to ATH price, Y-axis shows distribution change in BTC</p>
+          <p><span className="font-semibold">Note:</span> These are day-over-day changes in UTXO distribution</p>
+          <p><span className="text-green-600 font-semibold">Green bars:</span> Increased BTC in this price range | <span className="text-red-600 font-semibold">Red bars:</span> Decreased BTC in this price range</p>
+          <p>The total daily change ({selectedDayInfo?.total.toFixed(2)} BTC) represents the net change across all price buckets (mostly from new mining)</p>
         </div>
       </div>
     </div>

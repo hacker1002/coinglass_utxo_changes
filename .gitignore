@@ -108,7 +108,7 @@ pip-delete-this-directory.txt
 !package.json
 !tsconfig.json
 !tsconfig.node.json
-!public/utxo_data_lastweek.json
+!public/*.json
 
 # Temporary files
 *.tmp
