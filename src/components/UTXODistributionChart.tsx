@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const UTXODistributionChart = () => {
@@ -19,7 +19,7 @@ const UTXODistributionChart = () => {
         const baselinePartitions = data[0].partitions;
         
         // Process data
-        const processed = data.map((day: any, index: number) => {
+        const processed = data.map((day: any) => {
           const date = new Date(day.t * 1000);
           const distributionChanges = day.partitions.map((value: number, i: number) => 
             value - baselinePartitions[i]
