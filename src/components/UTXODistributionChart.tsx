@@ -17,9 +17,9 @@ const UTXODistributionChart = () => {
         
         setChangesData(data);
         
-        // Set first date as default
+        // Set last date as default
         if (data.length > 0) {
-          setSelectedDate(data[0].date);
+          setSelectedDate(data[data.length - 1].date);
         }
         setLoading(false);
       } catch (error) {
