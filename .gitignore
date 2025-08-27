@@ -102,14 +102,6 @@ venv.bak/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Project specific
-*.csv
-*.json
-!package.json
-!tsconfig.json
-!tsconfig.node.json
-!public/*.json
-
 # Temporary files
 *.tmp
 *.temp

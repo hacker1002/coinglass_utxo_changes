@@ -1,3 +1,13 @@
+## Flow update new data:
+
+- Go to https://studio.glassnode.com/charts/indicators.UtxoRealizedPriceDistributionAth?a=BTC&date=1755709200&mScl=lin&pScl=lin&resolution=24h&zoom=all , open Network tab to show all data from API `utxo_realized_price_distribution_ath`
+
+- Copy response data, replace to `glassnode_utxo_data.json`
+
+- Run `python calculate_distribution_changes.py` to calc distribution changes 
+
+- Commit and push to main (for cicd)
+
 ### Data structure of UTXO price distribution:
 
 ```json
