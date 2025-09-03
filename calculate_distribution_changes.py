@@ -8,16 +8,16 @@ with open('glassnode_utxo_data.json', 'r') as f:
 # Sort data by timestamp to ensure chronological order
 data.sort(key=lambda x: x['t'])
 
-# Get only the last 1000 rows (or all if less than 1000)
-last_1000_data = data[-1001:] if len(data) > 1000 else data
+# Get only the last 1750 rows (or all if less than 1750)
+last_1750_data = data[-1751:] if len(data) > 1750 else data
 
 # Prepare the JSON data
 json_data = []
 
 # Process each consecutive pair of days
-for i in range(1, len(last_1000_data)):
-    yesterday = last_1000_data[i-1]
-    today = last_1000_data[i]
+for i in range(1, len(last_1750_data)):
+    yesterday = last_1750_data[i-1]
+    today = last_1750_data[i]
     
     # Convert timestamp to date string
     date_str = datetime.fromtimestamp(today['t']).strftime('%Y-%m-%d')
