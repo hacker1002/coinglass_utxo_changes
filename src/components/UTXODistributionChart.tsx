@@ -49,17 +49,11 @@ const UTXODistributionChart = () => {
         const chartData = selectedDay.changes.map(
           (change: number, index: number) => {
             const price = selectedDay.prices[index];
-            const nextPrice =
-              index < selectedDay.prices.length - 1
-                ? selectedDay.prices[index + 1]
-                : price * 1.5; // Approximate next price for last bucket
 
             const priceRange =
               price < 1000
-                ? `$${price.toFixed(1)}-${nextPrice.toFixed(1)}`
-                : (price / 1000).toFixed(1) == (nextPrice / 1000).toFixed(1)
-                ? price
-                : `${(price / 1000).toFixed(1)}k-${(nextPrice / 1000).toFixed(1)}k`;
+                ? `$${price.toFixed(1)}`
+                : `${(price / 1000).toFixed(1)}k`;
 
             return {
               priceRange,
