@@ -1,6 +1,6 @@
 ## Flow update new data:
 
-- Go to https://studio.glassnode.com/charts/indicators.UtxoRealizedPriceDistributionAth?a=BTC&date=1755709200&mScl=lin&pScl=lin&resolution=24h&zoom=all , open Network tab to show all data from API `utxo_realized_price_distribution_ath`
+- Go to https://studio.glassnode.com/charts/indicators.UtxoRealizedPriceDistributionAth?a=BTC&mScl=lin&pScl=lin&resolution=24h&zoom=all , open Network tab to show all data from API `utxo_realized_price_distribution_ath`
 
 - Copy response data, replace to `glassnode_utxo_data.json`
 
