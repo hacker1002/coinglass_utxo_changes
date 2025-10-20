@@ -99,3 +99,4 @@ The app has a simple single-component structure:
 
 ## COMMON INTERACT WITH SKILLS
 - When user type "prepare utxo data", read workflow in `skills/prepare-utxo-data.md` then perform step by step.
+- When user type "push new data", read workflow in `skills/calc-change-and-push.md` then perform step by step.
