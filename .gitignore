@@ -107,3 +107,6 @@ pip-delete-this-directory.txt
 *.temp
 tmp/
 temp/
+
+# Skill folder
+skills/
