@@ -95,6 +95,7 @@ The app has a simple single-component structure:
 - Distribution changes can be negative (BTC moved out of price range) or positive (BTC moved in)
 - Total daily change is typically small and positive due to new mining supply
 - When modifying the Python script, ensure the cumulative bucketing logic is preserved to handle dynamic price boundaries correctly
+- Ignore the error `...permission denied: /var/folders/zz/...`. It not affect to our project execute 
 
 
 ## COMMON INTERACT WITH SKILLS
