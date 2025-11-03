@@ -13,7 +13,8 @@
                 "-y",
                 "@modelcontextprotocol/server-filesystem",
                 "/Users/user/Projects/AI-Projects/glassnode",
-                "/Users/user/Downloads"
+                "/Users/user/Downloads",
+                "~/Downloads"
             ],
             "env": {}
         }
